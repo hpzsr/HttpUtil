@@ -20,16 +20,16 @@ namespace HttpUtil
             DBTableManager.getInstance().init();
 
             // 遍历整个表
-            //List<DBTablePreset> list = MySqlUtil.getInstance().queryDatabaseTable("userinfo");
-            //for (int i = 0; i < list.Count; i++)
-            //{
-            //    for (int j = 0; j < list[i].keyList.Count; j++)
-            //    {
-            //        Console.Write(list[i].keyList[j].m_value + "    ");
-            //    }
+            List<DBTablePreset> list = MySqlUtil.getInstance().queryDatabaseTable("userinfo");
+            for (int i = 0; i < list.Count; i++)
+            {
+                for (int j = 0; j < list[i].keyList.Count; j++)
+                {
+                    Console.Write(list[i].keyList[j].m_value + "    ");
+                }
 
-            //    Console.WriteLine();
-            //}
+                Console.WriteLine();
+            }
 
             // 按条件查询
             //List<DBTablePreset> list = MySqlUtil.getInstance().getTableData("userinfo", new List<TableKeyObj>() { new TableKeyObj("id",TableKeyObj.ValueType.ValueType_int, 2), new TableKeyObj("name", TableKeyObj.ValueType.ValueType_string, "zsr") });

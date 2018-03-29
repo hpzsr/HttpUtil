@@ -14,3 +14,11 @@ E:\GitHub\HttpUtil\HttpUtil\bin\Debug\MySql.Data.dll
 E:\GitHub\HttpUtil\HttpUtil\obj\Debug\HttpUtil.csprojResolveAssemblyReference.cache
 E:\GitHub\HttpUtil\HttpUtil\obj\Debug\HttpUtil.exe
 E:\GitHub\HttpUtil\HttpUtil\obj\Debug\HttpUtil.pdb
+G:\GitHub\HttpUtil\HttpUtil\bin\Debug\HttpUtil.exe.config
+G:\GitHub\HttpUtil\HttpUtil\obj\Debug\HttpUtil.exe
+G:\GitHub\HttpUtil\HttpUtil\obj\Debug\HttpUtil.pdb
+G:\GitHub\HttpUtil\HttpUtil\bin\Debug\HttpUtil.exe
+G:\GitHub\HttpUtil\HttpUtil\bin\Debug\HttpUtil.pdb
+G:\GitHub\HttpUtil\HttpUtil\bin\Debug\LitJson.dll
+G:\GitHub\HttpUtil\HttpUtil\bin\Debug\MySql.Data.dll
+G:\GitHub\HttpUtil\HttpUtil\obj\Debug\HttpUtil.csprojResolveAssemblyReference.cache
