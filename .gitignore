@@ -8,6 +8,13 @@ HttpUtil/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
 HttpUtil/obj/Debug/HttpUtil.csprojResolveAssemblyReference.cache
 HttpUtil/obj/Debug/HttpUtil.exe
 HttpUtil/obj/Debug/HttpUtil.pdb
+<<<<<<< HEAD
+<<<<<<< HEAD
+HttpUtil/obj/Debug/HttpUtil.csproj.FileListAbsolute.txt
+.vs/HttpUtil/v15/.suo
+=======
+=======
+>>>>>>> a7b211bf694d87cb51c888806f4790081f49b7ca
 HttpUtil/bin/Debug/HttpUtil.exe
 HttpUtil/bin/Debug/HttpUtil.exe
 HttpUtil/bin/Debug/HttpUtil.exe
@@ -22,3 +29,7 @@ HttpUtil/obj/Debug/HttpUtil.csproj.FileListAbsolute.txt
 HttpUtil/bin/Debug/MySql.Data.dll
 HttpUtil/bin/Debug/HttpUtil.pdb
 HttpUtil/bin/Debug/HttpUtil.exe
+<<<<<<< HEAD
+>>>>>>> a7b211bf694d87cb51c888806f4790081f49b7ca
+=======
+>>>>>>> a7b211bf694d87cb51c888806f4790081f49b7ca
