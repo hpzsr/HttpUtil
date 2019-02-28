@@ -4,7 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Web;
+using System.Threading.Tasks;
+using LitJson;
 
 namespace HttpUtil
 {
@@ -15,21 +18,21 @@ namespace HttpUtil
 
         static void Main(string[] args)
         {
-            MySqlUtil.getInstance().openDatabase();
-            
-            DBTableManager.getInstance().init();
+            // MySqlUtil.getInstance().openDatabase();
+
+            // DBTableManager.getInstance().init();
 
             // 遍历整个表
-            List<DBTablePreset> list = MySqlUtil.getInstance().queryDatabaseTable("userinfo");
-            for (int i = 0; i < list.Count; i++)
-            {
-                for (int j = 0; j < list[i].keyList.Count; j++)
-                {
-                    Console.Write(list[i].keyList[j].m_value + "    ");
-                }
+            //List<DBTablePreset> list = MySqlUtil.getInstance().queryDatabaseTable("userinfo");
+            //for (int i = 0; i < list.Count; i++)
+            //{
+            //    for (int j = 0; j < list[i].keyList.Count; j++)
+            //    {
+            //        Console.Write(list[i].keyList[j].m_value + "    ");
+            //    }
 
-                Console.WriteLine();
-            }
+            //    Console.WriteLine();
+            //}
 
             // 按条件查询
             //List<DBTablePreset> list = MySqlUtil.getInstance().getTableData("userinfo", new List<TableKeyObj>() { new TableKeyObj("id",TableKeyObj.ValueType.ValueType_int, 2), new TableKeyObj("name", TableKeyObj.ValueType.ValueType_string, "zsr") });
@@ -52,20 +55,38 @@ namespace HttpUtil
             // 修改数据
             // MySqlUtil.getInstance().updateData("userinfo", new List<TableKeyObj>() { new TableKeyObj("name", TableKeyObj.ValueType.ValueType_string, "hpzsr")}, new List<TableKeyObj>() { new TableKeyObj("psw", TableKeyObj.ValueType.ValueType_string, "123456") });
 
+            try
             {
                 httpRequest = new HttpListener();
-                //httpRequest.Prefixes.Add("http://www.huangpin.xyz/");  //添加监听地址 注意是以/结尾
+                //httpRequest.Prefixes.Add("http://fksq.hy51v.com:10086/");  //添加监听地址 注意是以/结尾
 
-                string name = Dns.GetHostName();
-                IPAddress[] ipadrlist = Dns.GetHostAddresses(name);
-                Console.WriteLine("本机ip:" + ipadrlist[1].ToString());
+                {
+                    string name = Dns.GetHostName();
+                    IPAddress[] ipadrlist = Dns.GetHostAddresses(name);
 
-                httpRequest.Prefixes.Add("http://" + ipadrlist[1].ToString() + "/");
+                    /*
+                     * httplistener 拒绝访问  解决办法
+                     * cmd:netsh http add urlacl url=http://*:10086/ user=Everyone listen=yes
+                     */
+
+                    // 亚马逊服务器  http://3.17.204.203:10086/test3?param=124
+                    string url = "http://*:10086/";
+                    httpRequest.Prefixes.Add(url + "test1/");
+                    httpRequest.Prefixes.Add(url + "test2/");
+                    httpRequest.Prefixes.Add(url + "test3/");
+                    
+                    Console.WriteLine("监听地址    " + url);
+                }
+
                 httpRequest.Start(); //允许该监听地址接受请求的传入。  
 
                 GethttpRequestAsync();
 
                 Console.WriteLine("开始监听客户端请求:");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
             }
             
             Console.ReadKey();
@@ -86,7 +107,7 @@ namespace HttpUtil
                     //Thread subthread = new Thread(onHttpHandle);
                     //subthread.Start(requestContext);
 
-                    onHttpHandle(requestContext);
+                    await onHttpHandle(requestContext);
                 }
                 catch (Exception ex)
                 {
@@ -111,20 +132,51 @@ namespace HttpUtil
             }
         }
 
-        public static void onHttpHandle(object reecontext)
+        public static async Task onHttpHandle(object reecontext)
         {
             HttpListenerContext request = (HttpListenerContext)reecontext;
-            string msg = HttpUtility.UrlDecode(request.Request.QueryString["name"]);        //接受GET请求过来的参数；
-            
-            Console.WriteLine("有客户端请求:" + request.Request.RemoteEndPoint.Address.ToString() + "  " + CommonUtil.getCurTime());
+            string param = HttpUtility.UrlDecode(request.Request.QueryString["param"]);
+            string jiekou = requestContext.Request.Url.AbsolutePath;
+            Console.WriteLine(CommonUtil.getCurTime() + "----有客户端请求接口:" + jiekou + "    参数：" + param);
 
-            request.Response.StatusCode = 200;
-            request.Response.Headers.Add("Access-Control-Allow-Origin", "*");
-            request.Response.ContentType = "application/json";
-            requestContext.Response.ContentEncoding = Encoding.UTF8;
-            //byte[] buffer = System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new { success = true, behavior = msg }));
-            //byte[] buffer = System.Text.Encoding.UTF8.GetBytes("你的名字：" + msg);
-            byte[] buffer = System.Text.Encoding.UTF8.GetBytes("hp love zhangshiran!");
+            string backData = param;
+
+            if ("/test1".Equals(jiekou))
+            {
+                backData = "test1 " + param;
+            }
+            else if ("/test2".Equals(jiekou))
+            {
+                backData = "test2 " + param;
+            }
+            else if ("/test3".Equals(jiekou))
+            {
+                backData = "test3 " + param;
+            }
+
+            // ----这里不写好像也没问题----
+            //request.Response.StatusCode = 200;
+            //request.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+            //request.Response.ContentType = "application/json";
+            //requestContext.Response.ContentEncoding = Encoding.UTF8;
+
+            //string old_uid = "";
+
+            //// 按条件查询
+            //List<DBTablePreset> list = await MySqlUtil.getInstance().getTableData("log_login_old", new List<TableKeyObj>() { new TableKeyObj("machine_id", TableKeyObj.ValueType.ValueType_string, machine_id), new TableKeyObj("game_id", TableKeyObj.ValueType.ValueType_string, game_id) });
+
+            //if (list.Count > 0)
+            //{
+            //    old_uid = list[0].keyList[0].m_value.ToString();
+            //}
+
+            //JsonData jsonData = new JsonData();
+            //jsonData["old_uid"] = old_uid;
+
+            //string backData = jsonData.ToJson();
+            //Console.WriteLine(CommonUtil.getCurTime() + "----返回客户端数据:" + backData);
+
+            byte[] buffer = System.Text.Encoding.UTF8.GetBytes(backData);
             request.Response.ContentLength64 = buffer.Length;
             Stream output = request.Response.OutputStream;
             output.Write(buffer, 0, buffer.Length);

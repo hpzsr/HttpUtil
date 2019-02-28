@@ -6,26 +6,15 @@ using MySql.Data.MySqlClient;
 using System.Threading;
 using System.IO;
 using LitJson;
+using System.Threading.Tasks;
 
 namespace HttpUtil
 {
-    class LockObject : Object
-    {
-        public bool m_isLock;
-
-        public LockObject()
-        {
-            m_isLock = false;
-        }
-    }
-
     class MySqlUtil
     {
         static MySqlUtil s_mySqlUtil = null;
 
         MySqlConnection m_mySqlConnection;
-
-        LockObject m_lockObject = new LockObject();
 
         public static MySqlUtil getInstance()
         {
@@ -35,16 +24,6 @@ namespace HttpUtil
             }
 
             return s_mySqlUtil;
-        }
-
-        public void Lock()
-        {
-            m_lockObject.m_isLock = true;
-        }
-
-        public void UnLock()
-        {
-            m_lockObject.m_isLock = false;
         }
 
         // 打开数据库
@@ -77,12 +56,18 @@ namespace HttpUtil
             //进行数据库连接
             m_mySqlConnection.Open();
 
-            Console.WriteLine("数据库打开成功");
+            //Console.WriteLine("数据库打开成功");
         }
 
         // 数据库查询-遍历整个表
-        public List<DBTablePreset> queryDatabaseTable(string table)
+        public async Task<List<DBTablePreset>> queryDatabaseTable(string table)
         {
+            if (m_mySqlConnection.State == System.Data.ConnectionState.Closed)
+            {
+                Console.WriteLine("数据库连接断开，开始重新连接");
+                openDatabase();
+            }
+
             MySqlCommand cmd = new MySqlCommand("select * from " + table, m_mySqlConnection);
             MySqlDataReader dr = cmd.ExecuteReader();   //读出数据
 
@@ -109,11 +94,10 @@ namespace HttpUtil
             dr.Close();
 
             return listData;
-            //return dr;
         }
 
         // 数据库查询-按条件查询
-        public List<DBTablePreset> getTableData(string table, List<TableKeyObj> keyObjList)
+        public async Task<List<DBTablePreset>> getTableData(string table, List<TableKeyObj> keyObjList)
         {
             List<DBTablePreset> dbTablePresetList = new List<DBTablePreset>();
 
@@ -136,9 +120,9 @@ namespace HttpUtil
                     command += " and ";
                 }
             }
-            Console.WriteLine(command);
+            //Console.WriteLine(command);
 
-            MySqlDataReader dr = ExecuteCommandHasReturn(command);
+            MySqlDataReader dr = await ExecuteCommandHasReturn(command);
 
             List<DBTablePreset> listData = new List<DBTablePreset>();
             DBTablePreset baseTablePreset = DBTableManager.getInstance().getDBTablePreset(table);
@@ -157,11 +141,13 @@ namespace HttpUtil
                 listData.Add(tempTablePreset);
             }
 
+            dr.Close();
+
             return listData;
         }
 
         // 增加数据
-        public void insertData(string table, List<TableKeyObj> keyObjList)
+        public async Task insertData(string table, List<TableKeyObj> keyObjList)
         {
             string command = "insert into " + table + " (";
             for (int i = 0; i < keyObjList.Count; i++)
@@ -201,7 +187,13 @@ namespace HttpUtil
                 }
             }
 
-            Console.WriteLine(command);
+            //Console.WriteLine(command);
+
+            if (m_mySqlConnection.State == System.Data.ConnectionState.Closed)
+            {
+                Console.WriteLine("数据库连接断开，开始重新连接");
+                openDatabase();
+            }
 
             MySqlCommand cmd = new MySqlCommand(command, m_mySqlConnection);
             MySqlDataReader dr = cmd.ExecuteReader();
@@ -209,7 +201,7 @@ namespace HttpUtil
         }
 
         // 删除数据
-        public void deleteData(string table, List<TableKeyObj> keyObjList)
+        public async Task deleteData(string table, List<TableKeyObj> keyObjList)
         {
             string command = "delete from " + table + " where ";
             for (int i = 0; i < keyObjList.Count; i++)
@@ -231,7 +223,13 @@ namespace HttpUtil
                 }
             }
 
-            Console.WriteLine(command);
+            //Console.WriteLine(command);
+
+            if (m_mySqlConnection.State == System.Data.ConnectionState.Closed)
+            {
+                Console.WriteLine("数据库连接断开，开始重新连接");
+                openDatabase();
+            }
 
             MySqlCommand cmd = new MySqlCommand(command, m_mySqlConnection);
             MySqlDataReader dr = cmd.ExecuteReader();
@@ -239,7 +237,7 @@ namespace HttpUtil
         }
 
         // 修改数据
-        public void updateData(string table, List<TableKeyObj> tianjian_keyObjList, List<TableKeyObj> change_keyObjList)
+        public async Task updateData(string table, List<TableKeyObj> tianjian_keyObjList, List<TableKeyObj> change_keyObjList)
         {
             string command = "update " + table + " set ";//name = 'zsr' ,sex = 0 where id = 2";
             for (int i = 0; i < change_keyObjList.Count; i++)
@@ -284,69 +282,63 @@ namespace HttpUtil
                 }
             }
 
-            Console.WriteLine(command);
+            //Console.WriteLine(command);
+
+            if (m_mySqlConnection.State == System.Data.ConnectionState.Closed)
+            {
+                Console.WriteLine("数据库连接断开，开始重新连接");
+                openDatabase();
+            }
 
             MySqlCommand cmd = new MySqlCommand(command, m_mySqlConnection);
             MySqlDataReader dr = cmd.ExecuteReader();
             dr.Close();
         }
 
-        public void ExecuteCommand(string command)
+        public async Task ExecuteCommand(string command)
         {
-            lock (m_lockObject)
+            try
             {
-                while (m_lockObject.m_isLock)
+                if (m_mySqlConnection.State == System.Data.ConnectionState.Closed)
                 {
-                    // 数据库同一时间只能干一件事
+                    Console.WriteLine("数据库连接断开，开始重新连接");
+                    openDatabase();
                 }
 
-                try
-                {
-                    Lock();
+                MySqlCommand cmd = new MySqlCommand(command, m_mySqlConnection);
+                MySqlDataReader dr = cmd.ExecuteReader();
+                dr.Close();
+            }
+            catch (Exception ex)
+            {
+                //LogUtil.getInstance().writeErrorLog("错误信息：" + ex.Message.ToString() + "\r\n");
+                Console.WriteLine("错误信息：" + ex.ToString() + "\r\n");
 
-                    MySqlCommand cmd = new MySqlCommand(command, m_mySqlConnection);
-                    MySqlDataReader dr = cmd.ExecuteReader();
-                    dr.Close();
-
-                    UnLock();
-                }
-                catch (Exception ex)
-                {
-                    //LogUtil.getInstance().writeErrorLog("错误信息：" + ex.Message.ToString() + "\r\n");
-                    Console.WriteLine("错误信息：" + ex.Message.ToString() + "\r\n"); ;
-                    UnLock();
-
-                    throw ex;
-                }
+                throw ex;
             }
         }
 
-        public MySqlDataReader ExecuteCommandHasReturn(string command)
+        public async Task<MySqlDataReader> ExecuteCommandHasReturn(string command)
         {
-            lock (m_lockObject)
+            try
             {
-                while (m_lockObject.m_isLock)
+                if (m_mySqlConnection.State == System.Data.ConnectionState.Closed)
                 {
-                    // 数据库同一时间只能干一件事
+                    Console.WriteLine("数据库连接断开，开始重新连接");
+                    openDatabase();
                 }
 
-                try
-                {
-                    Lock();
+                MySqlCommand cmd = new MySqlCommand(command, m_mySqlConnection);
+                MySqlDataReader dr = cmd.ExecuteReader();
 
-                    MySqlCommand cmd = new MySqlCommand(command, m_mySqlConnection);
-                    MySqlDataReader dr = cmd.ExecuteReader();
+                return dr;
+            }
+            catch (Exception ex)
+            {
+                //LogUtil.getInstance().writeErrorLog("错误信息：" + ex.Message.ToString() + "\r\n");
+                Console.WriteLine("错误信息：" + ex.ToString() + "\r\n");
 
-                    return dr;
-                }
-                catch (Exception ex)
-                {
-                    //LogUtil.getInstance().writeErrorLog("错误信息：" + ex.Message.ToString() + "\r\n");
-                    Console.WriteLine("错误信息：" + ex.Message.ToString() + "\r\n");
-                    UnLock();
-
-                    throw ex;
-                }
+                throw ex;
             }
         }
 

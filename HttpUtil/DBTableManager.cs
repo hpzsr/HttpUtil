@@ -74,10 +74,19 @@ namespace HttpUtil
 
         public void init()
         {
-            UserInfo_Preset table = new UserInfo_Preset("userinfo");
-            table.initKey();
+            {
+                UserInfo_Preset table = new UserInfo_Preset("userinfo");
+                table.initKey();
 
-            tableList.Add(table);
+                tableList.Add(table);
+            }
+
+            {
+                log_login_old_Preset table = new log_login_old_Preset("log_login_old");
+                table.initKey();
+
+                tableList.Add(table);
+            }
         }
 
         public List<DBTablePreset> getTableList()
