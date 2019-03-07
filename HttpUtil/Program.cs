@@ -135,9 +135,28 @@ namespace HttpUtil
         public static async Task onHttpHandle(object reecontext)
         {
             HttpListenerContext request = (HttpListenerContext)reecontext;
-            string param = HttpUtility.UrlDecode(request.Request.QueryString["param"]);
             string jiekou = requestContext.Request.Url.AbsolutePath;
-            Console.WriteLine(CommonUtil.getCurTime() + "----有客户端请求接口:" + jiekou + "    参数：" + param);
+
+            string param = "";
+
+            if (request.Request.HttpMethod.CompareTo("GET") == 0)
+            {
+                param = HttpUtility.UrlDecode(request.Request.QueryString["param"]);
+
+                Console.WriteLine(CommonUtil.getCurTime() + "----收到GET请求:" + jiekou + "    参数：" + param);
+            }
+            else if (request.Request.HttpMethod.CompareTo("POST") == 0)
+            {
+                Stream body = request.Request.InputStream;
+                Encoding encoding = request.Request.ContentEncoding;
+                StreamReader reader = new System.IO.StreamReader(body, encoding);
+
+                param = reader.ReadToEnd();
+                body.Close();
+                reader.Close();
+
+                Console.WriteLine(CommonUtil.getCurTime() + "----收到POST请求:" + jiekou + "    参数：" + param);
+            }
 
             string backData = param;
 
